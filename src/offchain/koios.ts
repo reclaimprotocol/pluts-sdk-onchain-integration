@@ -1,4 +1,4 @@
-import { KoiosProvider } from "@harmoniclabs/koios-pluts"
+import { KoiosProvider } from "@hadisaleh/koios-pluts"
 export const koios = new KoiosProvider("preprod");
 
 export default koios;

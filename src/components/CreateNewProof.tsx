@@ -1,79 +1,98 @@
-import { Reclaim, Proof } from "@reclaimprotocol/js-sdk";
-import { useState } from "react";
-import { useQRCode } from 'next-qrcode';
+// @ts-nocheck
+import React, { useState, useEffect } from "react";
+import { ReclaimProofRequest, Proof } from "@reclaimprotocol/js-sdk";
+import { useQRCode } from "next-qrcode";
 import { Button, Text } from "@chakra-ui/react";
 
-export const CreateNewProof = ({ setNewProof, setReadyToVerify }: { setNewProof: (proof: Proof) => void, setReadyToVerify: (ready: boolean) => void }) => {
-    const [url, setUrl] = useState("");
-    const { Canvas } = useQRCode();
+export const CreateNewProof = ({
+  setNewProof,
+  setReadyToVerify,
+}: {
+  setNewProof: (proof: Proof) => void;
+  setReadyToVerify: (ready: boolean) => void;
+}) => {
+  const [url, setUrl] = useState("");
+  const [statusUrl, setStatusUrl] = useState("");
+  const [proof, setproof] = useState("");
+  const [reclaimProofRequest, setReclaimProofRequest] = useState(null);
+  const { Canvas } = useQRCode();
 
-    const reclaimClient = new Reclaim.ProofRequest("0x1ef80D4B1FA482A3EeE51520e3abf0BD92afEEA0"); //TODO: replace with your applicationId
+  useEffect(() => {
+    async function initializeReclaim() {
+      const APP_ID = "0x6E0338a6D8594101Ea9e13840449242015d71B19"; // This is an example App Id Replace it with your App Id.
+      const APP_SECRET =
+        "0x1e0d6a6548b72286d747b4ac9f2ad6b07eba8ad6a99cb1191890ea3f77fae48f"; // This is an example App Secret Replace it with your App Secret.
+      const PROVIDER_ID = "6d3f6753-7ee6-49ee-a545-62f1b1822ae5"; // This is GitHub Provider Id Replace it with the provider id you want to use.
 
-    async function generateVerificationRequest() {
-        const providerId = "1bba104c-f7e3-4b58-8b42-f8c0346cdeab"; //TODO: replace with your provider ids you had selected while creating the application
-
-        reclaimClient.addContext(
-            `user's address`,
-            "for acmecorp.com on 1st january"
-        );
-
-        await reclaimClient.buildProofRequest(providerId);
-
-        reclaimClient.setSignature(
-            await reclaimClient.generateSignature(
-                "0xed3680366053c0f1af04caeaf45ecd33d65a0dee98febd586580c6b7244483fb" //TODO : replace with your APP_SECRET
-            )
-        );
-
-        const { requestUrl, statusUrl } =
-            await reclaimClient.createVerificationRequest();
-
-        setUrl(requestUrl);
-
-        await reclaimClient.startSession({
-            onSuccessCallback: (proofs) => {
-                console.log("Verification success", proofs);
-                setNewProof(proofs[0]);
-                setReadyToVerify(true)
-                // Your business logic here
-            },
-            onFailureCallback: (error) => {
-                console.error("Verification failed", error);
-                // Your business logic here to handle the error
-            },
-        });
+      const proofRequest = await ReclaimProofRequest.init(
+        APP_ID,
+        APP_SECRET,
+        PROVIDER_ID
+      );
+      setReclaimProofRequest(proofRequest);
     }
-    return (
-        <div
-            style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "50vh",
-            }}
+
+    initializeReclaim();
+  }, []);
+
+  async function generateVerificationRequest() {
+    if (!reclaimProofRequest) {
+      console.error("Reclaim Proof Request not initialized");
+      return;
+    }
+
+    const url = await reclaimProofRequest.getRequestUrl();
+    setUrl(url);
+    const status = reclaimProofRequest.getStatusUrl();
+    setStatusUrl(status);
+    await reclaimProofRequest.startSession({
+      onSuccesss: async (proof: Proof) => {
+        setNewProof(proof);
+        setReadyToVerify(true);
+      },
+      onFailure: (error: Error) => {
+        console.error("Verification failed", error);
+        setTxLoading(false);
+      },
+    });
+  }
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        height: "50vh",
+      }}
+    >
+      {!url && (
+        <Button
+          className="btn btn-secondary"
+          onClick={generateVerificationRequest}
         >
-            {!url && (
-                <Button className="btn btn-secondary" onClick={generateVerificationRequest}>
-                    Create New Proof
-                </Button>
-            )}
-            {
-                url && <><Canvas
-                    text={url}
-                    options={{
-                        errorCorrectionLevel: 'M',
-                        margin: 3,
-                        scale: 4,
-                        width: 200,
-                        color: {
-                            dark: '#010599FF',
-                            light: '#FFBF60FF',
-                        },
-                    }}
-                />
-                    <Text>Scan this QR code with your mobile device to verify your proof</Text>
-                </>
-            }
-        </div>
-    );
+          Create New Proof
+        </Button>
+      )}
+      {url && (
+        <>
+          <Canvas
+            text={url}
+            options={{
+              errorCorrectionLevel: "M",
+              margin: 3,
+              scale: 4,
+              width: 200,
+              color: {
+                dark: "#010599FF",
+                light: "#FFBF60FF",
+              },
+            }}
+          />
+          <Text>
+            Scan this QR code with your mobile device to verify your proof
+          </Text>
+        </>
+      )}
+    </div>
+  );
 };

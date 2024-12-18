@@ -1,8 +1,8 @@
-import '@/styles/globals.css';
-import type { AppProps } from 'next/app';
-import { ChakraProvider } from '@chakra-ui/react';
+import "@/styles/globals.css";
+import type { AppProps } from "next/app";
+import { ChakraProvider } from "@chakra-ui/react";
 import { MeshProvider } from "@meshsdk/react";
-
+import "@meshsdk/react/styles.css";
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <ChakraProvider
@@ -11,13 +11,13 @@ export default function App({ Component, pageProps }: AppProps) {
           position: "top-right",
           variant: "left-accent",
           isClosable: true,
-          duration: 10_000
-        }
+          duration: 10_000,
+        },
       }}
     >
       <MeshProvider>
         <Component {...pageProps} />
-      </ MeshProvider>
+      </MeshProvider>
     </ChakraProvider>
-  )
+  );
 }
