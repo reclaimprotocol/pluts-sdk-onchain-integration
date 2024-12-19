@@ -12,7 +12,7 @@ import identusManager from "./identusManager";
 async function getLockTx(
   wallet: BrowserWallet,
   reclaimProof: Proof,
-  showToast?: (options: { title: string; status: "success" | "error" }) => void
+  Did: string
 ): Promise<Tx> {
   const myAddr = Address.fromString(await wallet.getChangeAddress());
 
@@ -32,15 +32,7 @@ async function getLockTx(
     throw "not enough ada";
   }
 
-  const did = await identusManager.createDid(reclaimProof);
-  if (showToast) {
-    showToast({ title: "DID created successfully!", status: "success" });
-  }
-  const credential = await identusManager.issueCredential(did, reclaimProof);
-
-  const datumBytes = new TextEncoder().encode(
-    parameters + signatures + credential
-  );
+  const datumBytes = new TextEncoder().encode(parameters + signatures + Did);
 
   const hashedDatum = new DataB(
     new TextEncoder().encode(toHexString(sha3(datumBytes)))
@@ -66,9 +58,9 @@ async function getLockTx(
 export async function lockTx(
   wallet: BrowserWallet,
   reclaimProof: Proof,
-  showToast?: (options: { title: string; status: "success" | "error" }) => void
+  Did: string
 ): Promise<string> {
-  const unsingedTx = await getLockTx(wallet, reclaimProof, showToast);
+  const unsingedTx = await getLockTx(wallet, reclaimProof, Did);
 
   const txStr = await wallet.signTx(unsingedTx.toCbor().toString());
 

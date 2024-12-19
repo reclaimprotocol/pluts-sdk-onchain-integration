@@ -33,7 +33,8 @@ function buildRedemeer(signatures: string, parameters: string) {
 
 async function getUnlockTx(
   wallet: BrowserWallet,
-  reclaimProof: Proof
+  reclaimProof: Proof,
+  Did: string
 ): Promise<Tx> {
   // ---- Reclaim Proof Verification ---- //
   // verify proof here with @reclaimprotocol/js-sdk
@@ -45,11 +46,8 @@ async function getUnlockTx(
   const myUTxOs = (await wallet.getUtxos()).map(toPlutsUtxo);
   const myAddr = myAddrs[0];
 
-  const did = await identusManager.createDid(reclaimProof);
-  const credential = await identusManager.issueCredential(did, reclaimProof);
-
   const datumBytes = new TextEncoder().encode(
-    reclaimProof.claimData.parameters + reclaimProof.signatures[0] + credential
+    reclaimProof.claimData.parameters + reclaimProof.signatures[0] + Did
   );
 
   const hashedDatum = new DataB(
@@ -107,16 +105,15 @@ const BLOCKFROST_URL = "https://cardano-preprod.blockfrost.io/api/v0"; // Prepro
 
 export async function unlockTx(
   wallet: BrowserWallet,
-  proof: Proof
+  proof: Proof,
+  Did: string
 ): Promise<string> {
-  const unsingedTx = await getUnlockTx(wallet, proof);
+  const unsingedTx = await getUnlockTx(wallet, proof, Did);
 
   const txStr = await wallet.signTx(
     unsingedTx.toCbor().toString(),
     true // partial sign because we have smart contracts in the transaction
   );
-
-  console.log("The God damned TX from Unlock", txStr);
 
   try {
     const response = await axios.post(

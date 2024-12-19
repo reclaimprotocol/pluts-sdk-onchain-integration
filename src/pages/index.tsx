@@ -1,4 +1,4 @@
-import { Button, useToast } from "@chakra-ui/react";
+import { Button, useToast, Text } from "@chakra-ui/react";
 import { useNetwork, useWallet } from "@meshsdk/react";
 import style from "@/styles/Home.module.css";
 import ConnectionHandler from "@/components/ConnectionHandler";
@@ -7,6 +7,7 @@ import { unlockTx } from "@/offchain/unlockTx";
 import { Proof } from "@reclaimprotocol/js-sdk";
 import { CreateNewProof } from "@/components/CreateNewProof";
 import { useState } from "react";
+import { CreateDIDFromProof } from "@/components/CreateVcFromProof";
 
 export default function Home() {
   const { wallet, connected } = useWallet();
@@ -14,7 +15,11 @@ export default function Home() {
   const toast = useToast();
 
   const [newProof, setNewProof] = useState<Proof>();
+  const [Did, setDID] = useState("");
   const [readyToVerify, setReadyToVerify] = useState(false);
+  const [readyDID, setReadyDID] = useState(false);
+  const [lockLoading, setlockLoading] = useState(false);
+  const [unlockLoading, setUnlockLoading] = useState(false);
 
   if (typeof network === "number" && network !== 0) {
     return (
@@ -50,8 +55,10 @@ export default function Home() {
       });
       return;
     }
+
+    setlockLoading(true);
     // @ts-ignore
-    lockTx(wallet, newProof, toast)
+    lockTx(wallet, newProof, Did)
       // lock transaction created successfully
       .then((txHash) =>
         toast({
@@ -59,6 +66,9 @@ export default function Home() {
           status: "success",
         })
       )
+      .then(() => {
+        setlockLoading(false);
+      })
       // lock transaction failed
       .catch((e) => {
         toast({
@@ -77,8 +87,9 @@ export default function Home() {
       });
       return;
     }
+    setUnlockLoading(true);
     // @ts-ignore
-    unlockTx(wallet, newProof)
+    unlockTx(wallet, newProof, Did)
       // unlock transaction created successfully
       .then((txHash) =>
         toast({
@@ -86,6 +97,9 @@ export default function Home() {
           status: "success",
         })
       )
+      .then(() => {
+        setlockLoading(false);
+      })
       // unlock transaction failed
       .catch((e) => {
         toast({
@@ -107,10 +121,34 @@ export default function Home() {
               setReadyToVerify={setReadyToVerify}
             />
           )}
-          {readyToVerify && (
+          {readyToVerify && !readyDID && (
+            <CreateDIDFromProof
+              setDID={setDID}
+              setReadyToLock={setReadyDID}
+              reclaimProof={newProof}
+              showToast={toast}
+            />
+          )}
+          {readyDID && (
             <>
-              <Button onClick={onLock}>Lock Your Proof</Button>
-              <Button onClick={onUnlock}>Unlock (Prove)</Button>
+              <Button
+                isLoading={lockLoading}
+                loadingText="Locking..."
+                onClick={onLock}
+              >
+                Lock Your Proof
+              </Button>
+              <Text>
+                Please allow some time between locking and unlocking to ensure
+                the lock transaction is successfully recorded on-chain.
+              </Text>
+              <Button
+                isLoading={unlockLoading}
+                loadingText="UnLocking..."
+                onClick={onUnlock}
+              >
+                Unlock (Prove)
+              </Button>
             </>
           )}
         </>
