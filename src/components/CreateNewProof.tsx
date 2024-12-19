@@ -46,7 +46,7 @@ export const CreateNewProof = ({
     const status = reclaimProofRequest.getStatusUrl();
     setStatusUrl(status);
     await reclaimProofRequest.startSession({
-      onSuccesss: async (proof: Proof) => {
+      onSuccess: async (proof: Proof) => {
         setNewProof(proof);
         setReadyToVerify(true);
       },
