@@ -98,7 +98,7 @@ export default function Home() {
         })
       )
       .then(() => {
-        setlockLoading(false);
+        setUnlockLoading(false);
       })
       // unlock transaction failed
       .catch((e) => {
@@ -107,6 +107,7 @@ export default function Home() {
           status: "success",
         });
         console.error(e);
+        setUnlockLoading(false);
       });
   }
 
