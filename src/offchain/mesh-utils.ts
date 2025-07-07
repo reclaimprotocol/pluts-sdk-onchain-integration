@@ -18,6 +18,7 @@ function toPlutsValue( units: Asset[] ): Value
         return new Value([
             {
                 policy,
+                //@ts-ignore
                 assets: { [assetName]: BigInt(quantity) },
             }
         ]);
