@@ -19,11 +19,13 @@ export default async function getTxBuilder(): Promise<TxBuilder> {
 
     try {
       // just in kase koios returns protocol paramters that don't look good
+      //@ts-ignore
       _cachedTxBuilder = new TxBuilder(pp);
     } catch {
       // if that happens then use the default protocol paramters
       // !!! IMPORTANT !!! use only as fallback;
       // parameters might (and will) change from the real world
+      //@ts-ignore
       _cachedTxBuilder = new TxBuilder(defaultProtocolParameters);
     }
   }

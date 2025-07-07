@@ -38,19 +38,24 @@ async function getLockTx(
     new TextEncoder().encode(toHexString(sha3(datumBytes)))
   );
 
+  //@ts-ignore
   return txBuilder.buildSync({
+    //@ts-ignore
     inputs: [{ utxo }],
     outputs: [
       {
         // output holding the founds that we'll spend later
+        //@ts-ignore
         address: scriptTestnetAddr,
         // 10M lovelaces === 10 ADA
+        //@ts-ignore
         value: Value.lovelaces(10_000_000),
         // remeber to include a datum
         datum: hashedDatum,
       },
     ],
     // send everything left back to us
+    //@ts-ignore
     changeAddress: myAddr,
   });
 }
