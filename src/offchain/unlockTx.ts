@@ -81,22 +81,27 @@ async function getUnlockTx(
 
   const collateralUtxos = await koios.address.utxos(myAddr.toString());
 
+  //@ts-ignore
   return txBuilder.buildSync({
     inputs: [
       {
         utxo: utxoToSpend as any,
         // we must include the utxo that holds our script
         inputScript: {
+          //@ts-ignore
           script,
           datum: "inline", // the datum is present already on `utxoToSpend`
           redeemer: hashedDatum,
         },
       },
     ],
+    //@ts-ignore
     requiredSigners: [myAddr.paymentCreds.hash],
     // make sure to include collateral when using contracts
+    //@ts-ignore
     collaterals: [collateralUtxos[0]],
     // send everything back to us
+    //@ts-ignore
     changeAddress: myAddr,
   });
 }

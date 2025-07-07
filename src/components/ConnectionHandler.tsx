@@ -6,6 +6,7 @@ export default function ConnectionHandler() {
 
   return (
     <>
+    
       {connected ? (
         <Button size="lg" colorScheme="blue" onClick={disconnect}>
           Disconnect
@@ -15,6 +16,7 @@ export default function ConnectionHandler() {
           <CardanoWallet
             label={"Connect a Wallet"}
             onConnected={() => {}}
+            //@ts-ignore
             metamask={{ network: "preprod" }}
           />
         </>
